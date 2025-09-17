@@ -7,17 +7,42 @@
 {% if api_error %}
 <p class="text-warning">{{ api_error }}</p>
 {% endif %}
-<form action="/dashboard" method="post">
+{% if error %}
+<p class="text-danger">{{ error }}</p>
+{% endif %}
+{% if tip %}
+<p class="text-info">Privacy Tip: {{ tip }}</p>
+{% endif %}
+<form action="/dashboard" method="post" onsubmit="return validateEmail()">
     <div class="mb-3">
-        <input class="form-control mx-auto w-auto" name="email" placeholder="Re-scan Your Email" type="email" value="{{ request.form.email if request.form.email else '' }}">
+        <input class="form-control mx-auto w-auto" name="email" placeholder="Re-scan Your Email" type="email" id="emailInput" required>
     </div>
     <button class="btn btn-primary" type="submit">Scan Email</button>
 </form>
-<form action="/check_password" method="post">
+<form action="/check_password" method="post" onsubmit="return validatePassword()">
     <div class="mb-3">
-        <input class="form-control mx-auto w-auto" name="password" placeholder="Check Your Password" type="password">
+        <input class="form-control mx-auto w-auto" name="password" placeholder="Check Your Password" type="password" id="passwordInput" required>
     </div>
     <button class="btn btn-primary" type="submit">Check Password</button>
 </form>
 <a href="/logout" class="btn btn-secondary mt-3">Logout</a>
+<a href="/backup_db" class="btn btn-info mt-3">Backup Data</a>
+<script>
+    function validateEmail() {
+        const email = document.getElementById("emailInput").value;
+        if (!email.includes("@")) {
+            alert("Please enter a valid email address.");
+            return false;
+        }
+        return true;
+    }
+    function validatePassword() {
+        const password = document.getElementById("passwordInput").value;
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters long.");
+            return false;
+        }
+        return true;
+    }
+</script>
 {% endblock %}
