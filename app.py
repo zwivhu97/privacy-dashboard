@@ -8,18 +8,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
 
-db = SQL("sqlite:///privacy.db")
-
-# Create or update users table with password
-db.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        breaches_count INTEGER DEFAULT 0,
-        score INTEGER DEFAULT 100
-    )
-""")
+# Initialize database with automatic creation
+try:
+    db = SQL("sqlite:///privacy.db")
+except RuntimeError:
+    # Create the database file if it doesn't exist
+    open("privacy.db", "a").close()  # Create an empty file
+    db = SQL("sqlite:///privacy.db")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            breaches_count INTEGER DEFAULT 0,
+            score INTEGER DEFAULT 100
+        )
+    """)
 
 @app.route("/")
 def index():
@@ -75,10 +79,10 @@ def dashboard():
         breaches_count = len(breaches)
         score = max(0, 100 - (breaches_count * 10))
         db.execute("UPDATE users SET breaches_count = ?, score = ? WHERE id = ?", breaches_count, score, user_id)
-        tip = generate_privacy_tip(breaches_count)  # Simulated AI tip
+        tip = generate_privacy_tip(breaches_count)
         return render_template("dashboard.html", breaches_count=breaches_count, score=score, tip=tip)
     rows = db.execute("SELECT breaches_count, score FROM users WHERE id = ?", user_id)
-    tip = generate_privacy_tip(rows[0]["breaches_count"])  # Simulated AI tip
+    tip = generate_privacy_tip(rows[0]["breaches_count"])
     return render_template("dashboard.html", breaches_count=rows[0]["breaches_count"], score=rows[0]["score"], tip=tip)
 
 @app.route("/check_password", methods=["POST"])
@@ -112,7 +116,6 @@ def logout():
     session.clear()
     return redirect("/login")
 
-# Simulated AI privacy tip function (replace with real API later)
 def generate_privacy_tip(breaches_count):
     if breaches_count > 0:
         return "Consider changing your passwords and enabling two-factor authentication."
