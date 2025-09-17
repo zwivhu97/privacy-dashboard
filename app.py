@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, redirect, session
 from cs50 import SQL
 import requests
 import hashlib
+import os
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key-here"  # Replace with a random string (e.g., secrets.token_hex(16))
+app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")  # Use env var with fallback
 
 # Initialize database
 db = SQL("sqlite:///privacy.db")
@@ -21,9 +22,7 @@ db.execute("""
 
 @app.route("/")
 def index():
-    if not session.get("user_id"):
-        return redirect("/login")
-    return redirect("/dashboard")
+    return redirect("/login")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -69,7 +68,6 @@ def check_password():
     password = request.form.get("password")
     if not password:
         return "Must provide password", 400
-    # Hash password with SHA-1 for Pwned Passwords API (free tier)
     sha1_password = hashlib.sha1(password.encode()).hexdigest().upper()
     prefix = sha1_password[:5]
     suffix = sha1_password[5:]
