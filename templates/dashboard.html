@@ -4,10 +4,19 @@
 <h1>Privacy Dashboard</h1>
 <p>Your Privacy Health Score: {{ score }}/100</p>
 <p>Number of Breaches: {{ breaches_count }}</p>
+{% if api_error %}
+<p class="text-warning">{{ api_error }}</p>
+{% endif %}
 <form action="/dashboard" method="post">
     <div class="mb-3">
         <input class="form-control mx-auto w-auto" name="email" placeholder="Re-scan Email" type="email">
     </div>
     <button class="btn btn-primary" type="submit">Scan</button>
+</form>
+<form action="/check_password" method="post">
+    <div class="mb-3">
+        <input class="form-control mx-auto w-auto" name="password" placeholder="Check Password" type="password">
+    </div>
+    <button class="btn btn-primary" type="submit">Check Password</button>
 </form>
 {% endblock %}
